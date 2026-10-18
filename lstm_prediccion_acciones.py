@@ -87,20 +87,20 @@ def entrenar_y_predecir(df_stocks, ticker, fecha_inicio, seq_length=7, dias=7, e
     data.reset_index(drop=True, inplace=True)
     data = calcular_indicadores(data)
 
-    data_rnn = data[data['Date'] >= pd.Timestamp(fecha_inicio)].copy()
-    data_rnn.sort_values('Date', ascending=True, inplace=True)
-    data_rnn.reset_index(drop=True, inplace=True)
+    data_lstm = data[data['Date'] >= pd.Timestamp(fecha_inicio)].copy()
+    data_lstm.sort_values('Date', ascending=True, inplace=True)
+    data_lstm.reset_index(drop=True, inplace=True)
 
-    if len(data_rnn) < seq_length + 5:
+    if len(data_lstm) < seq_length + 5:
         raise ValueError(f'Muy pocos datos desde {fecha_inicio}. Elegi una fecha mas antigua.')
 
     feature_cols = ['7. Adj Close', '5. Volume', 'RSI', 'EMA_20', 'EMA_50', 'EMA_200']
 
     scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(data_rnn[feature_cols])
+    scaled_data = scaler.fit_transform(data_lstm[feature_cols])
 
     scaler_target = MinMaxScaler()
-    scaler_target.fit_transform(data_rnn[['7. Adj Close']])
+    scaler_target.fit_transform(data_lstm[['7. Adj Close']])
 
     X, y = create_sequences(scaled_data, seq_length)
     split = int(0.8 * len(X))
@@ -162,8 +162,8 @@ def entrenar_y_predecir(df_stocks, ticker, fecha_inicio, seq_length=7, dias=7, e
 
     # Forecast: recalcular indicadores en cada paso
     model.eval()
-    price_history = data_rnn['7. Adj Close'].values.tolist()
-    volume_last = data_rnn['5. Volume'].values[-1]
+    price_history = data_lstm['7. Adj Close'].values.tolist()
+    volume_last = data_lstm['5. Volume'].values[-1]
     last_window = scaled_data[-seq_length:]
 
     future_preds = []
@@ -186,14 +186,14 @@ def entrenar_y_predecir(df_stocks, ticker, fecha_inicio, seq_length=7, dias=7, e
         last_window = np.vstack([last_window[1:], new_row_scaled])
 
     predictions = np.array(future_preds)
-    last_date = data_rnn['Date'].iloc[-1]
+    last_date = data_lstm['Date'].iloc[-1]
     next_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=dias)
     df_future = pd.DataFrame({'Date': next_dates, '7. Adj Close': predictions})
 
-    return data, data_rnn, df_future
+    return data, data_lstm, df_future
 
 
-def graficar(data, data_rnn, df_future, ticker):
+def graficar(data, data_lstm, df_future, ticker):
     precio_actual = data['7. Adj Close'].iloc[-1]
     ema20_actual  = data['EMA_20'].iloc[-1]
     ema50_actual  = data['EMA_50'].iloc[-1]
@@ -250,7 +250,7 @@ def graficar(data, data_rnn, df_future, ticker):
     plt.show()
 
     fig2, ax2 = plt.subplots(figsize=(14, 4))
-    ultimos = data_rnn[['Date', '7. Adj Close', 'EMA_20', 'EMA_50', 'EMA_200']].tail(30)
+    ultimos = data_lstm[['Date', '7. Adj Close', 'EMA_20', 'EMA_50', 'EMA_200']].tail(30)
     ax2.plot(ultimos['Date'], ultimos['7. Adj Close'],
              label='Ultimos 30 dias reales', color='#1f77b4', linewidth=1.2)
     ax2.plot(ultimos['Date'], ultimos['EMA_20'],
@@ -262,7 +262,7 @@ def graficar(data, data_rnn, df_future, ticker):
     ax2.plot(df_future['Date'], df_future['7. Adj Close'],
              label=f'Prediccion LSTM ({len(df_future)} dias)',
              color='#d62728', linewidth=2, linestyle='--', marker='o', markersize=5)
-    ax2.axvline(x=data_rnn['Date'].iloc[-1], color='gray', linestyle=':', linewidth=1,
+    ax2.axvline(x=data_lstm['Date'].iloc[-1], color='gray', linestyle=':', linewidth=1,
                 label='Hoy')
     ax2.set_title(f'Prediccion LSTM para {ticker} (proximos {len(df_future)} dias)', fontsize=13)
     ax2.set_xlabel('Fecha')
@@ -299,10 +299,10 @@ if __name__ == '__main__':
 
     print('Entrenando modelo LSTM...')
     try:
-        data, data_rnn, df_future = entrenar_y_predecir(df_stocks, ticker, fecha)
+        data, data_lstm, df_future = entrenar_y_predecir(df_stocks, ticker, fecha)
     except ValueError as e:
         print(f'Error: {e}')
         exit(1)
 
     print('Listo!\n')
-    graficar(data, data_rnn, df_future, ticker)
+    graficar(data, data_lstm, df_future, ticker)

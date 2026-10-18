@@ -8,7 +8,7 @@ Modelo de prediccion de precios bursatiles usando una red neuronal LSTM (Long Sh
 
 ### Opcion 1 — Notebook interactivo (.ipynb)
 
-1. Abri `rnn_prediccion_acciones.ipynb` en [Google Colab](https://colab.research.google.com/) o Jupyter Notebook
+1. Abri `lstm_prediccion_acciones.ipynb` en [Google Colab](https://colab.research.google.com/) o Jupyter Notebook
 2. Ejecuta la **celda 1** para instalar las dependencias
 3. Ejecuta la **celda 2** para cargar el visualizador
 4. Ingresa el ticker de la accion (ej: `TSLA`, `AAPL`, `GOOGL`)
@@ -18,7 +18,7 @@ Modelo de prediccion de precios bursatiles usando una red neuronal LSTM (Long Sh
 ### Opcion 2 — Script por terminal (.py)
 
 ```bash
-python rnn_prediccion_acciones.py
+python lstm_prediccion_acciones.py
 ```
 
 Te pide el ticker y la fecha de inicio por consola.
@@ -107,8 +107,8 @@ pip install yfinance torch scikit-learn pandas numpy matplotlib
 ## Estructura del repositorio
 
 ```
-├── rnn_prediccion_acciones.ipynb   # Notebook con visualizador interactivo (widgets)
-├── rnn_prediccion_acciones.py      # Script para ejecutar por terminal
+├── lstm_prediccion_acciones.ipynb   # Notebook con visualizador interactivo (widgets)
+├── lstm_prediccion_acciones.py     # Script para ejecutar por terminal
 └── README.md
 ```
 
